@@ -13,7 +13,7 @@ function InfoTooltip (props) {
       onClose={props.onClose} 
       isOpen={props.isOpen}>
         <img src={props.isOk ? UnionV : UnionX} className="popup__tt-image" alt={props.isOk ? "Молодец!" : "Облом("} />
-        <p className="popup__tt-text">{props.isOk ? "Вы успешно зарегистрировались!" : "Что-то пошло не так! Попробуйте ещё раз."}</p>
+        <p className="popup__tt-text">{props.infoText}</p>
       </PopupWithForm>
   )
 }

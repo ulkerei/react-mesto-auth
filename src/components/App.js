@@ -1,4 +1,5 @@
 import React from "react";
+import {useEffect, useState} from "react";
 import { Route, Switch, useHistory} from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import Header from './Header';
@@ -22,26 +23,27 @@ import CurrentUserContext from '../contexts/CurrentUserContext';
 function App() {
 const history = useHistory();
 
-  const [currentUser, setCurrentUser] = React.useState({});
-  const [cards, setCards] = React.useState([]);
+  const [currentUser, setCurrentUser] = useState({});
+  const [cards, setCards] = useState([]);
 
-  const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
-  const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);
-  const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = React.useState(false);
-  const [isConfirmationPopupOpen, setIsConfirmationPopupOpen] = React.useState(false);
-  const [isInfoTooltipOpen, setIsInfoTooltipOpen] = React.useState(false);
+  const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
+  const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
+  const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);
+  const [isConfirmationPopupOpen, setIsConfirmationPopupOpen] = useState(false);
+  const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState(false);
 
-  const [isOk, setIsOk] = React.useState(false);
+  const [isOk, setIsOk] = useState(false);
+  const [infoText, setInfoText] = useState('');
 
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [selectedCard, setSelectedCard] = React.useState({});
-  const [isImagePopupOpen, setImagePopupOpen] = React.useState(false);
-  const [loggedOn, setLoggedOn] = React.useState(false);
+  const [selectedCard, setSelectedCard] = useState({});
+  const [isImagePopupOpen, setImagePopupOpen] = useState(false);
+  const [loggedOn, setLoggedOn] = useState(false);
 
-  const [topButton, setTopButton] = React.useState('');
-  const [topButtonLink, setTopButtonLink] = React.useState('');
-  const [emailInfo, setEmailInfo] = React.useState('');
+  const [topButton, setTopButton] = useState('');
+  const [topButtonLink, setTopButtonLink] = useState('');
+  const [emailInfo, setEmailInfo] = useState('');
 
   function handleEditAvatarClick() { setIsEditAvatarPopupOpen(true); };
   function handleEditProfileClick() { setIsEditProfilePopupOpen(true); };
@@ -57,12 +59,14 @@ const history = useHistory();
     auth.register(userData)
       .then((userInfo) => {
         setIsOk(true);
+        setInfoText('Вы успешно зарегистрировались!');
         setIsInfoTooltipOpen(true);
         history.push('/signin');
       })
       .catch((err) => {
         console.log(err);
         setIsOk(false);
+        setInfoText('Что-то пошло не так! Попробуйте ещё раз.');
         setIsInfoTooltipOpen(true);
       });
   }
@@ -81,6 +85,7 @@ const history = useHistory();
       console.log(err);
       setIsInfoTooltipOpen(true);
       setIsOk(false);
+      setInfoText('Что-то пошло не так! Попробуйте ещё раз.');
     });
   }
 
@@ -113,7 +118,6 @@ const history = useHistory();
       .finally(() => 
       {setIsLoading(false)});
   }
-
 
   function handleUpdateUserAvatar(userData) {
     setIsLoading(true);
@@ -167,20 +171,22 @@ const history = useHistory();
     .catch(err => console.log(err));
   }
 
-  React.useEffect(() => {
-    Promise.all([
-      api.getProfileInfo(),
-      api.getInitialCards()])
-      .then(([userInfo, cardsInfo]) => {
-        setCurrentUser(userInfo);
-        setCards(cardsInfo);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
+  useEffect(() => {
+    if (loggedOn) {
+      Promise.all([
+        api.getProfileInfo(),
+        api.getInitialCards()])
+        .then(([userInfo, cardsInfo]) => {
+          setCurrentUser(userInfo);
+          setCards(cardsInfo);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [loggedOn]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       auth.validate({token})
@@ -232,7 +238,7 @@ const history = useHistory();
         <AddPlacePopup onClose={closeAllPopups} onAddPlace={handleAddPlaceSubmit} isOpen={isAddPlacePopupOpen} isLoading={isLoading} />
         <ConfirmationPopup card={selectedCard} onClose={closeAllPopups} isOpen={isConfirmationPopupOpen} onDelete={handleCardDelete}/>
         <ImagePopup card={selectedCard} onClose={closeAllPopups} isOpen={isImagePopupOpen} />
-        <InfoTooltip onClose={closeAllPopups} isOpen={isInfoTooltipOpen} isOk={isOk}/>
+        <InfoTooltip onClose={closeAllPopups} isOpen={isInfoTooltipOpen} isOk={isOk} infoText={infoText}/>
         <Footer />
       </div>
     </CurrentUserContext.Provider>
